@@ -485,6 +485,11 @@ fn button_system(
     mut text: Query<&mut Text>,
 ) {
     for (interaction, mut color, button_command) in interaction_query.iter_mut() {
+        if *state.current() != GameState::Playing 
+        && matches!(interaction, Interaction::Hovered | Interaction::Clicked)
+        && matches!(button_command, ButtonCommand::Grid(..)) {
+            continue;
+        }
         *color = match *interaction {
             Interaction::Clicked => {
                 match button_command {
@@ -494,8 +499,8 @@ fn button_system(
                     }
                     ButtonCommand::Quit => event.send(AppExit),
                     ButtonCommand::Grid(index) => {
-                        if *state.current() == GameState::Playing
-                            && matches!(board.tiles[*index], Tile::Empty)
+                        
+                        if matches!(board.tiles[*index], Tile::Empty)
                         {
                             if board.play_move(*index) {
                                 state.set(GameState::GameOver).unwrap();
@@ -513,6 +518,7 @@ fn button_system(
             Interaction::Hovered => HOVERED_BUTTON.into(),
             Interaction::None => NORMAL_BUTTON.into(),
         }
+        
     }
 }
 
@@ -543,3 +549,5 @@ fn main() {
         .add_system(button_system)
         .run();
 }
+
+
