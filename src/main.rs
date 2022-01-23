@@ -11,7 +11,7 @@ const PRESSED_BUTTON: Color = Color::rgb(0.35, 0.75, 0.55);
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 enum GameState {
-    Menu,
+    Title,
     Playing,
     GameOver,
 }
@@ -26,7 +26,6 @@ impl GameText {
     fn bundle(&self, label: &str) -> TextBundle {
         TextBundle {
             text: self.text(label),
-            focus_policy: FocusPolicy::Pass,
             ..Default::default()
         }
     }
@@ -38,24 +37,13 @@ impl GameText {
                 font_size: 4.0 * self.0.font_size,
                 ..self.0.clone()
             },
-            TextAlignment {
-                horizontal: HorizontalAlign::Center,
-                vertical: VerticalAlign::Center,
-            },
+            TextAlignment::default()
         )
     }
 
     fn big_bundle(&self, label: &str) -> TextBundle {
         TextBundle {
             text: self.big(label),
-            focus_policy: FocusPolicy::Pass,
-            style: Style {
-                flex_direction: FlexDirection::Column,
-                align_items: AlignItems::Center,
-                justify_content: JustifyContent::Center,
-
-                ..Default::default()
-            },
             ..Default::default()
         }
     }
@@ -168,7 +156,7 @@ struct UiNodes {
 
 impl UiNodes {
     fn menu(&self) -> Entity {
-        self.states[GameState::Menu as usize]
+        self.states[GameState::Title as usize]
     }
     fn board(&self) -> Entity {
         self.states[GameState::Playing as usize]
@@ -344,10 +332,6 @@ fn make_board(
         .spawn_bundle(NodeBundle {
             color: UiColor(Color::YELLOW),
             style: Style {
-                size: Size {
-                    width: Val::Auto,
-                    height: Val::Auto,
-                },
                 padding: Rect::all(Val::Px(5.0)),
                 margin: Rect::all(Val::Px(5.0)),
                 flex_direction: FlexDirection::Column,
@@ -360,13 +344,6 @@ fn make_board(
         let row = commands
             .spawn_bundle(NodeBundle {
                 color: UiColor(Color::GREEN),
-                style: Style {
-                    size: Size {
-                        width: Val::Auto,
-                        height: Val::Auto,
-                    },
-                    ..Default::default()
-                },
                 ..Default::default()
             })
             .id();
@@ -387,7 +364,6 @@ fn make_board(
                     style: Style {
                         size: Size::new(Val::Px(TILE_SIZE), Val::Px(TILE_SIZE)),
                         margin: Rect::all(Val::Px(5.0)),
-                        flex_direction: FlexDirection::Column,
                         align_items: AlignItems::Center,
                         justify_content: JustifyContent::Center,
                         ..Default::default()
@@ -456,7 +432,7 @@ fn update_display(
     mut query: Query<&mut Style>,
 ) {
     match game_state.current() {
-        GameState::Menu => [true, false, false],
+        GameState::Title => [true, false, false],
         GameState::Playing => [false, true, false],
         GameState::GameOver => [false, true, true],
     }
@@ -518,7 +494,6 @@ fn button_system(
             Interaction::Hovered => HOVERED_BUTTON.into(),
             Interaction::None => NORMAL_BUTTON.into(),
         }
-        
     }
 }
 
@@ -532,7 +507,7 @@ fn main() {
     App::new()
         .insert_resource(ClearColor(Color::BLACK))
         .add_plugins(DefaultPlugins)
-        .add_state(GameState::Menu)
+        .add_state(GameState::Title)
         .init_resource::<GameText>()
         .init_resource::<UiNodes>()
         .init_resource::<Board>()
@@ -549,5 +524,3 @@ fn main() {
         .add_system(button_system)
         .run();
 }
-
-
